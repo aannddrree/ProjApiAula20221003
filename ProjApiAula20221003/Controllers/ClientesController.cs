@@ -25,14 +25,15 @@ namespace ProjApiAula20221003.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Cliente>>> GetCliente()
         {
-            return await _context.Cliente.ToListAsync();
+            return await _context.Cliente.Include(c => c.Endereco).ToListAsync();
         }
 
         // GET: api/Clientes/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Cliente>> GetCliente(int id)
         {
-            var cliente = await _context.Cliente.FindAsync(id);
+            var cliente = await _context.Cliente.Include(c => c.Endereco)
+                                                .Where(c => c.Id == id).FirstAsync();
 
             if (cliente == null)
             {
@@ -78,6 +79,13 @@ namespace ProjApiAula20221003.Controllers
         [HttpPost]
         public async Task<ActionResult<Cliente>> PostCliente(Cliente cliente)
         {
+
+            if (cliente.Endereco.Id != 0)
+            {
+                cliente.Endereco = _context.Endereco.Where(e => e.Id == cliente.Endereco.Id).First();
+            }
+
+
             _context.Cliente.Add(cliente);
             await _context.SaveChangesAsync();
 
